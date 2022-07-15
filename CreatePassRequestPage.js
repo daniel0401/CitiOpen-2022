@@ -12,8 +12,8 @@ function CreatePassRequestPage() {
         $(statusmessage).insertBefore('#IPrequestFormPassStatusMessage')
     }
 
-    //STAFF PASS
-    if ($('#IPrequestFormContainer11901').length) {
+    //PASSES
+    if ($('#IPrequestFormContainer11701').length || $('#IPrequestFormContainer11801').length || $('#IPrequestFormContainer11901').length) {
         var emergency = '<td id="fieldCellop_nok"><div id="PRFPerDetailsLabelop_nok" class="PRFPerDetailsLabel">Emergency Contact Details</div></td>'
         var photo = `<div id="PRFPerDetailsLabelop_photo" class="PRFPerDetailsLabel">Image Uploader</div><ul class="IPFormMenu float-left"><li class="IPFormMenuItem" id="IPFormMenuAddPhotoButton" onclick="doEditPassRequestForm('addPhotoFromPassRequest')">Add Photo</li></ul>`
 
@@ -44,22 +44,13 @@ function CreatePassRequestPage() {
         $('img#op_img').detach().prependTo('.photo-container')
         $('#IPpersonpanelInvalidFieldsDiv').detach().prependTo('.pass-form-content')
 
-        $('#accessDatesDiv7701').detach().prependTo('.access-dates-value')
-        $('#IPcheckAllDates7701,#IPclearAllDates7701').detach().prependTo('.check-all-dates')
-        $('#IPcheckAllDates7701').html('Select All')
+        $('.accessDatesDiv').detach().prependTo('.access-dates-value')
+        $('#IPcheckAllDates7701,#IPclearAllDates7701,#IPcheckAllDates7901,#IPclearAllDates7901,#IPcheckAllDates8001,#IPclearAllDates8001').detach().prependTo('.check-all-dates')
+        $('#IPcheckAllDates7701,#IPcheckAllDates7901,#IPcheckAllDates8001').html('Select All')
 
         if (!$('#EPRFPersonSelect').length) {
             $('#ipPassRequestOPFormDiv > div.row:nth-child(3)').remove()
             $('#ipPassRequestOPFormDiv > table:nth-child(19)').hide()
-        }
-
-        if ($('input[name="chgOP_gids"]').length) {
-            selectOptions()
-
-            if($('select#op_role').val() != '') {
-                var op_roleVal = $('select#op_role').val()
-                $('select#op_role').find('option[value="'+ op_roleVal +'"]').attr('selected',true)
-            }
         }
 
         $('#EPRFPersonSelect').detach().appendTo('.user-select')
@@ -72,68 +63,37 @@ function CreatePassRequestPage() {
         $('#ipPassRequestOWrapper,#IPpassRequestFormPersonDetailsLegend,#IPrequestFormPassTypeHeader,.IPPRFTNotesDiv').remove()
 
         if ($('.IPrequestFormContainer').hasClass('is')) {
-            $('#PRButtons').html(`<li id="BButtonCancel" class="btn btn-default" onclick="doMenuForm('newPassRequestsList')"><span id="BButtonCancelSpan">Cancel</span></li><li id="BButtonSaveDraft" class="btn btn-dark" onclick="doEditPassRequestForm('savePassRequestChanges')"><span id="BButtonSaveDraftSpan">Save</span></li><li id="BButtonFastSubmit" class="btn btn-success" onclick="doEditPassRequestForm('submitPassRequest')"><span id="BButtonFastSubmitSpan">Submit</span></li>`)
+            $('#PRButtons').html(`<li id="BButtonCancel" class="btn btn-default" onclick="doMenuForm('newPassRequestsList')"><span id="BButtonCancelSpan">Cancel</span></li><li id="BButtonSaveDraft" class="btn btn-dark" onclick="SavePass()"><span id="BButtonSaveDraftSpan">Save</span></li><li id="BButtonFastSubmit" class="btn btn-success" onclick="SubmitPass()"><span id="BButtonFastSubmitSpan">Submit</span></li>`)
         } else if ($('.IPrequestFormContainer').hasClass('isDraft')) {
-            $('#PRButtons').html(`<li id="BButtonCancel" class="btn btn-default" onclick="doMenuForm('listPassRequests')"><span id="BButtonCancelSpan">Cancel</span></li><li id="BButtonDelete" class="btn btn-danger" onclick="doEditPassRequestForm('dltPassRequest')"><span id="PRButtonDeleteSpan">Delete</span></li><li id="BButtonSaveDraft" class="btn btn-dark" onclick="doEditPassRequestForm('savePassRequestChanges')"><span id="BButtonSaveDraftSpan">Save</span></li><li id="BButtonFastSubmit" class="btn btn-success" onclick="doEditPassRequestForm('submitPassRequest')"><span id="BButtonFastSubmitSpan">Submit</span></li>`)
+            $('#IPFormMenuAddPhotoButton').addClass('reqinvalid')
+            $('#PRButtons').html(`<li id="BButtonCancel" class="btn btn-default" onclick="doMenuForm('listPassRequests')"><span id="BButtonCancelSpan">Cancel</span></li><li id="BButtonDelete" class="btn btn-danger" onclick="doEditPassRequestForm('dltPassRequest')"><span id="PRButtonDeleteSpan">Delete</span></li><li id="BButtonSaveDraft" class="btn btn-dark" onclick="SavePass()"><span id="BButtonSaveDraftSpan">Save</span></li><li id="BButtonFastSubmit" class="btn btn-success" onclick="SubmitPass()"><span id="BButtonFastSubmitSpan">Submit</span></li>`)
+            if(sessionStorage.getItem('isDraft') != null) {
+                $('<div class="container-box"><div class="rectangle"><div class="notification-text"><i class="bx bxs-error bx-flashing"></i><span>Not ready for Submission!</span></div></div></div>').insertBefore('#IPSysMessageRow')
+                window.setTimeout(function () {
+                    $('.rectangle').addClass('rectangle-out').removeClass('rectangle')
+               }, 5000)
+                sessionStorage.removeItem('isDraft')
+                sessionStorage.removeItem('isSubmitted')
+            }
         } else if ($('.IPrequestFormContainer').hasClass('isSubmitted')) {
-            $('#PRButtons').html(`<li id="BButtonCancel" class="btn btn-default" onclick="doMenuForm('listPassRequests')"><span id="BButtonCancelSpan">Close</span></li><li id="BButtonDelete" class="btn btn-danger" onclick="doEditPassRequestForm('dltPassRequest')"><span id="PRButtonDeleteSpan">Delete</span></li><li id="BButtonSaveDraft" class="btn btn-dark" onclick="doEditPassRequestForm('savePassRequestChanges')"><span id="BButtonSaveDraftSpan">Save</span></li>`)
+            $('#IPFormMenuAddPhotoButton').addClass('reqinvalid')
+            $('#PRButtons').html(`<li id="BButtonCancel" class="btn btn-default" onclick="doMenuForm('listPassRequests')"><span id="BButtonCancelSpan">Close</span></li><li id="BButtonDelete" class="btn btn-danger" onclick="doEditPassRequestForm('dltPassRequest')"><span id="PRButtonDeleteSpan">Delete</span></li><li id="BButtonSaveDraft" class="btn btn-dark" onclick="SavePass()"><span id="BButtonSaveDraftSpan">Save</span></li>`)
         } else if ($('.IPrequestFormContainer').hasClass('isApproved') || $('.IPrequestFormContainer').hasClass('isRejected')) {
             $('#PRButtons').html(`<li id="BButtonCancel" class="btn btn-default" onclick="doMenuForm('listPassRequests')"><span id="BButtonCancelSpan">Close</span></li>`)
             ApprovedPass()
             Disabled()
         }
-    }
-}
 
-function selectOptions() {
-    var op_gids = $('input[name="chgOP_gids"]').val()
-    $('select#op_role option:gt(0)').hide()
+        $('select, input, textarea, #IPFormMenuAddPhotoButton, .accessDatesDiv').each(function() {
+            if($(this).hasClass('reqinvalid') || $(this).hasClass('auxInputInvalid') || $(this).hasClass('passdatesnotok')) {
+                $('<div class="required-feedback">This field is required.</div>').insertAfter(this)
+            }
+        })
 
-    if (op_gids.indexOf('52101') > -1) {
-        var newOptions = {
-            //TEXT : VALUE
-            'National Park Service': 'National Park Service',
-            'Tournament Owner + Family (Male)': 'Tournament Owner and Family | Male',
-            'Select Male Tournament Staff': 'Select Male Tournament Staff',
-            'Select Male ATP Tour Staff': 'Select Male ATP Tour Staff',
-            'Tournament Director': 'Tournament Director',
-            'ATP/WTA Designated Chair Umpires (Male)': 'ATP and WTA Designated Chair Umpires | Male',
-            'Tournament Medical Staff (male)': 'Tournament Medical Staff | Male',
-            'Doping Control Officer (Male)': 'Doping Control Officer | Male',
-            'Select Female Tournament Staff': 'Select Female Tournament Staff',
-            'Select Female ATP Tour Staff': 'Select Female ATP Tour Staff',
-            'Select Female WTA Tour Staff': 'Select Female WTA Tour Staff',
-            'ATP/WTA Designated Chair Umpires (Female)': 'ATP and WTA Designated Chair Umpires | Female',
-            'Tournament Medical Staff (female)': 'Tournament Medical Staff | Female',
-            'Tournament Owner Family (female)': 'Tournament Owner Family | Female',
-            'Doping Control Officer (female)': 'Doping Control Officer | Female',
-            'Select Tournament Staff': 'Select Tournament Staff',
-            'Select ATP & WTA Tour Staff': 'Select ATP and WTA Tour Staff',
-            'Select WTEF Staff': 'Select WTEF Staff',
-            'Tournament Photographers (non-media photographers)': 'Tournament Photographers | non-media photographers',
-            'Hawkeye': 'Hawkeye',
-            'Facilities Staff': 'Facilities Staff'
+        if($('#PRFPerLockedFieldsInfo').length) {
+            ApprovedPass()
         }
     }
-
-    if (op_gids.indexOf('52801') > -1) {
-        var newOptions = {
-            //TEXT : VALUE
-            'Concessions': 'Concessions',
-            'Volunteers': 'Volunteers',
-            'Operational Vendors': 'Operational Vendors',
-            'Booth Vendors': 'Booth Vendors'
-        }
-    }
-    
-    var $el = $('select#op_role')
-    $.each(newOptions, function (key, value) {
-        $el.append(
-        $('<option></option>')
-            .attr('value', value)
-            .text(key)
-        )
-    })
 }
 
 function ApprovedPass() {
@@ -146,6 +106,7 @@ function ApprovedPass() {
     var address = $('.PRFPerDetailsRowop_a1 #op_a1').html()
     var postCode = $('.PRFPerDetailsRowop_acode #op_acode').html()
     var nextOfKin = $('.PRFPerDetailsRowop_nok #op_nok').html()
+    var clothing = $('#AUX_CF_CF062b8bb3caae90').html()
 
     $('<td id="fieldCellop_name"><div id="PRFPerDetailsLabelop_name" class="PRFPerDetailsLabel">Full Name&nbsp;</div><input size="30" class="required form-control" validate="j" id="op_name" value="'+ fullName +'" name="op_name" onblur="revalidate(this)"></td>').prependTo('.full-name')
     $('<td id="fieldCellop_dob"><div id="PRFPerDetailsLabelop_dob" class="PRFPerDetailsLabel">Date Of Birth&nbsp;</div><input type="text" size="30" name="op_dob" id="op_dob" style="" class="required form-control" value="'+ dob +'" placeholder="mm/dd/yyyy"><span id="PRFPerDetailsPostLabelop_dob">dd/mm/yyyy</span></td>').prependTo('.dob')
@@ -155,9 +116,33 @@ function ApprovedPass() {
     $('<td id="fieldCellop_postnoms"><div id="PRFPerDetailsLabelop_postnoms" class="PRFPerDetailsLabel">Gender&nbsp;</div><input type="text" size="30" style="" class="required form-control" validate="j" id="op_postnoms" value="'+ gender +'" name="op_postnoms" onblur="revalidate(this)"></td>').prependTo('.gender')
     $('<td id="fieldCellop_a1"><div id="PRFPerDetailsLabelop_a1" class="PRFPerDetailsLabel">Home Address&nbsp;</div><input type="text" size="30" style="" class="required form-control" validate="j" id="op_a1" value="'+ address +'" name="op_a1" onblur="revalidate(this)"></td>').prependTo('.address-one')
     $('<td id="fieldCellop_acode"><div id="PRFPerDetailsLabelop_acode" class="PRFPerDetailsLabel">Postal/ZIP Code&nbsp;</div><input type="text" size="30" style="" class="required form-control" validate="j" id="op_acode" value="'+ postCode +'" name="op_acode" onblur="revalidate(this)"></td>').prependTo('.post-code')
+    $('.clothing').html('<div class="PRFPerDetailsLabel">T-Shirt Size:</div><input type="text" size="30" style="" class="required form-control" validate="j" id="AUX_CF_CF062b8bb3caae90" value="'+ clothing +'" name="AUX_CF_CF062b8bb3caae90"></td><p><span>Please Note:</span> All clothing is <b>Unisex</b></p>')
     $('.emergency').html('<div id="PRFPerDetailsLabelop_nok" class="PRFPerDetailsLabel">Emergency Contact Details</div><textarea style="" class="required form-control" validate="j" id="op_nok" name="op_nok" onblur="revalidate(this)">'+ nextOfKin +'</textarea>')
 
     $('#PRFPerLockedFieldsInfo').remove()
+}
+
+function SavePass() {
+    $('body').css('overflow', 'hidden')
+    $('#PRButtons li').addClass('disabled-function')
+    $('<div class="container-box"><div class="rectangle"><div class="notification-text"><i class="bx bxs-bell bx-tada"></i> <span>Saved Successfully!</span></div></div></div>').insertBefore('#IPSysMessageRow')
+    window.setTimeout(function () {
+        $('<div class="container-box_2"><div class="rectangle"><div class="notification-text"><i class="bx bx-loader bx-spin bx-flip-horizontal"></i><span>Reloading Form</span></div></div></div>').insertBefore('#IPSysMessageRow')
+    }, 1000)
+    window.setTimeout(function () {
+        doEditPassRequestForm('savePassRequestChanges') 
+    }, 2000)
+}
+
+function SubmitPass() {
+    $('body').css('overflow', 'hidden')
+    $('#PRButtons li').addClass('disabled-function')
+    sessionStorage.setItem('isDraft',true)
+    sessionStorage.setItem('isSubmitted',true)
+    $('<div class="container-box"><div class="rectangle"><div class="notification-text"><i class="bx bx-loader bx-spin bx-flip-horizontal"></i><span>Submitting Form</span></div></div></div>').insertBefore('#IPSysMessageRow')
+    window.setTimeout(function () {
+        doEditPassRequestForm('submitPassRequest')
+    }, 1000)
 }
 
 function Disabled() {
